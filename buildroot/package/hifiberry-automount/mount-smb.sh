@@ -1,11 +1,13 @@
 #!/bin/bash
 BASEDIR=/data/library/music
-for m in `cat /etc/smbmounts.conf | grep -v ^#`; do
 
+grep -v '^#' /etc/smbmounts.conf  | while read -r m ; do 
   # Split the line first
   readarray -d \; -t parts <<< "$m"
   MOUNTID=${parts[0]}
   SHARE=${parts[1]}
+  # add a variable to mount share with space 
+  SHAREMOUNT="'"$SHARE"'";
   USER=${parts[2]}
   PASSWORD=${parts[3]}
   MOUNTOPTS=${parts[4]}
@@ -39,9 +41,11 @@ for m in `cat /etc/smbmounts.conf | grep -v ^#`; do
     SHARE=`echo $SHARE | sed s/$HOST/$IP/`
   fi
 
-  mountcmd="mount -t cifs -o user=$USER,password=$PASSWORD,$MOUNTOPTS $SHARE /data/library/music/$MOUNTID"
-  echo ${mountcmd}
-  ${mountcmd}
+  mountcmd="mount -t cifs -o user=$USER,password=$PASSWORD,$MOUNTOPTS $SHAREMOUNT /data/library/music/$MOUNTID"
+  # change execute commante   
+  echo $mountcmd
+  eval $mountcmd
+}
 
   if [ -x /opt/hifiberry/bin/report-activation ]; then
     /opt/hifiberry/bin/report-activation mount_samba
